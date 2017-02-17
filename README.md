@@ -1,4 +1,4 @@
-# GoSqlPlayground
+# Go SQL Playground
 
 Messing around using MySQL with Go. This project is purely a learning exercise for me, looking at 
 how databases can be used in Go.
