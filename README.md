@@ -11,6 +11,10 @@ Here are some of the basic goals of this project:
 * [ ] Reading into structs.
 * [ ] Simple "up-only", file-based migrations.
 
+## Credits
+
+http://go-database-sql.org/
+
 ## License
 
 MIT
