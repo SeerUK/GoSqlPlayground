@@ -3,12 +3,12 @@ package versions
 import "github.com/SeerUK/go-sql-playground/database"
 
 func init() {
-	database.RegisterVersion(&V1{})
+	database.RegisterVersion(&V2{})
 }
 
-type V1 struct{}
+type V2 struct{}
 
-func (v V1) Migration() string {
+func (v V2) Migration() string {
 	return `
 		CREATE DATABASE example (
 			id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -20,6 +20,6 @@ func (v V1) Migration() string {
 	`
 }
 
-func (v V1) Number() int {
-	return 1
+func (v V2) Number() int {
+	return 2
 }
