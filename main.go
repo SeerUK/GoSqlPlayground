@@ -1,14 +1,23 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	"log"
 
 	"github.com/SeerUK/go-sql-playground/database"
 	_ "github.com/SeerUK/go-sql-playground/database/versions"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	log.Println("==> Connecting to MySQL...")
 
-	database.Migrate()
+	db, err := sql.Open("mysql", "root:gsp@tcp(127.0.0.1:3306)/gsp")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	database.Migrate(db)
 }
