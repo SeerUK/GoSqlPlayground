@@ -38,15 +38,35 @@ func Migrate(db *sql.DB) {
 	}
 
 	nextVersion := getNextVersion(versions, currentVersion)
+	// @todo: Don't use this, write your own function...
 	pos := sort.SearchInts(versions, nextVersion)
+
+	if nextVersion <= currentVersion {
+		log.Println("Already at latest database version.")
+		return
+	}
 
 	for _, version := range versions[pos:] {
 		log.Println(fmt.Sprintf("Migrating to version '%d'.", version))
 
-		_, err := db.Exec(migrations[version])
+		tx, err := db.Begin()
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		_, err = tx.Exec(fmt.Sprintf("INSERT INTO %s (version) VALUES (?)", table), version)
+		if err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+
+		_, err = tx.Exec(migrations[version])
+		if err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+
+		tx.Commit()
 	}
 }
 
