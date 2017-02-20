@@ -15,7 +15,6 @@ func RegisterVersion(versionNo int, migration string) {
 	migrations[versionNo] = migration
 }
 
-// @todo: Needs sql.DB
 func Migrate(db *sql.DB) {
 	sort.Ints(versions)
 
@@ -30,22 +29,24 @@ func Migrate(db *sql.DB) {
 	if !hasTable(db, "gsp", table) {
 		log.Println("==> Migration versions table doesn't exist! Creating...")
 
-		createMigrationVerionsTable(db, table)
+		createVersionsTable(db, table)
 	}
 
-	versionNo, err := getMigrationVersion(db, table)
+	currentVersion, err := getCurrentVersion(db, table)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(versionNo)
+	nextVersion := getNextVersion(versions, currentVersion)
+	pos := sort.SearchInts(versions, nextVersion)
 
-	// @todo: Check status of migrations table.
-	// @todo: 1. Table exists.
-	// @todo: 2. Current version.
+	for _, version := range versions[pos:] {
+		log.Println(fmt.Sprintf("Migrating to version '%d'.", version))
 
-	for _, migration := range migrations {
-		fmt.Println(migration)
+		_, err := db.Exec(migrations[version])
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -76,7 +77,7 @@ func hasTable(db *sql.DB, schema string, table string) bool {
 	return hasTable
 }
 
-func createMigrationVerionsTable(db *sql.DB, table string) error {
+func createVersionsTable(db *sql.DB, table string) error {
 	format := `
 		CREATE TABLE %s (
 			version INT UNSIGNED NOT NULL,
@@ -91,7 +92,7 @@ func createMigrationVerionsTable(db *sql.DB, table string) error {
 	return err
 }
 
-func getMigrationVersion(db *sql.DB, table string) (int, error) {
+func getCurrentVersion(db *sql.DB, table string) (int, error) {
 	var version int
 
 	format := "SELECT version FROM %s ORDER BY version DESC LIMIT 1;"
@@ -102,4 +103,18 @@ func getMigrationVersion(db *sql.DB, table string) (int, error) {
 	}
 
 	return version, err
+}
+
+func getNextVersion(versions []int, currentVersion int) int {
+	var next int
+
+	for _, version := range versions {
+		next = version
+
+		if currentVersion < version {
+			break
+		}
+	}
+
+	return next
 }
